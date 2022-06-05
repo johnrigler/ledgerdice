@@ -1,0 +1,354 @@
+<DOCTYPE html>
+
+<!--
+
+Copyright 2022, Secret Beach Solutions 
+Written by: John Rigler (john.rigler@protonmail.com)
+
+This file is free to use with no warranty. You may make
+minor modifications to this and even sell it, but if 
+you make major changes, you need to upload them back to
+the system where you found this. In this case, you would upload
+a copy to IPFS and then create a Polygon PIN to share 
+your work with us. 
+
+How to use:
+
+Just save this to your desktop with a ".html" extension and
+then run it. That is all you have to do. This is a work
+in progress. Thanks
+
+-->
+
+<head>
+
+      
+
+      <script type = "text/JavaScript">
+
+            function AutoRefresh( t ) {
+               setTimeout("location.reload(true);", t);
+            }
+      </script>
+
+
+   <style>
+       td {
+           color: gray;
+           font-size: 12px;
+           font-family: monospace;
+       }
+   </style>
+
+		<meta charset='UTF-8'>
+		<meta http-equiv='X-UA-Compatible' content='IE=edge'>
+		<title>Web3 Dice</title>
+		<meta name='viewport' content='width=device-width, initial-scale=1'>
+
+               <script src='jquery-3.2.1.min.js'></script>
+	       <script src='web3-1_3_6.min.js'></script>   
+	       <script src='methods.js'></script>
+
+	</head>
+	<body onload = "JavaScript:AutoRefresh(5111000);">
+	<button onclick="changeInfo('(random 6 6)');"><h1>Roll 6 x 6</h1></button>
+
+	<button onclick="changeInfo('(random 20)');"><h1>Roll D20 - D&D attack</h1></button>
+
+	<button onclick="changeInfo('(random 12)');"><h1>Roll D12 - D&D battle damage</h1></button>
+
+	<hr>
+        <span id="messagebox"><input type="text" length=10 value="( random 6 6 )" id="message"></span>
+	<!--    var getMessage = document.getElementById('message').value;  -->
+
+        <button onclick="changeInfo(document.getElementById('message').value);">Roll</button>
+	<hr>
+        <button onclick="changeInfo(location.reload());">Refresh from Ledger</button>
+
+
+
+
+
+
+
+<script type="text/javascript">
+
+async function loadWeb3() {
+                        if(window.ethereum) { 
+                                window.web3 = new Web3(window.ethereum);
+                                window.ethereum.enable();
+                                }
+                        }
+
+async function loadContract() { 
+                return await new window.web3.eth.Contract( 
+[
+        {
+                "inputs": [
+                        {
+                                "internalType": "string",
+                                "name": "Random",
+                                "type": "string"
+                        }
+                ],
+                "name": "roll",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+        }
+]
+                         , '0x57b60c4d03e806081d6c539f4012e8e6bdfcca8c');
+                }
+
+async function load() {
+        await loadWeb3();
+        window.contract = await loadContract();
+               }
+
+async function getCurrentAccount() {
+        const accounts = await window.web3.eth.getAccounts();
+        console.log(accounts);
+        return accounts[0];
+}
+
+</script>
+		
+		<span id="message"></span>
+
+<script>
+
+                function updateStatus(stat) {
+                       const statusEl = document.getElementById('stat');
+                       statusEl.innerHTML = stat;
+                       // console.log(stat);
+                       }
+</script>
+
+		<span id="target"></span>
+
+<script type="text/javascript">
+
+
+	async function loadWeb3() {
+		if(window.ethereum) { 
+			window.web3 = new Web3(window.ethereum);
+			window.ethereum.enable();
+			}
+		}
+
+       function updateTarget(target) {
+	          const resultEl = document.getElementById('target');
+	          resultEl.innerHTML = target;
+       }
+
+function hex2a(hexx) {
+
+    var hex = hexx.toString();//force conversion
+    var str = '';
+    for (var i = 0; i < hex.length; i += 2)
+	{
+        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+	}
+    return str;
+}
+
+
+function Hex2DecF(HexVal){
+            hexChars = '0123456789abcdef';
+            HexVal = HexVal.toUpperCase();
+            DecVal = 0;
+            temp = HexVal.substring(0,1);
+            DecVal = (hexChars.indexOf(temp) * 16);
+            temp = HexVal.substring(1);
+            DecVal += hexChars.indexOf(temp);
+            return DecVal;
+        }
+
+function hex2dec(str) {
+            r = 0;
+            n = str.length/2;
+            for(i=0; i<n; i++) {
+                x = n-1-i;
+                c = Hex2DecF(str.substring(i*2,i*2+2))*Math.pow(256,x);
+                r += c;
+            }
+            return r;
+        }
+
+address='0x57b60c4d03e806081d6c539f4012e8e6bdfcca8c'	
+network='polygon'
+
+//apikey='P2VD4Q197F12TVGTQT8982EAQI254DNJ4Z'
+
+function loadPage(network,address,apikey,startblock,endblock) {
+	console.log("loadPage")
+if (network == "polygon")
+	{
+api='https://api.polygonscan.com/'
+explorer="https://polygonscan.com/"
+othernet="ropsten"
+	}
+
+if (network == "ropsten")
+        {
+api='https://api-ropsten.etherscan.io/'
+explorer="https://ropsten.etherscan.io/"
+othernet="polygon"
+        }
+
+url=api + 'api?module=account&action=txlist&address=' + address + '&sort=desc&apikey=' + apikey + '&startblock=' + startblock + '&endblock=' + endblock 
+
+$.getJSON(url,
+function(data)
+	{
+	otherkey=findGetParameter("otherkey")
+		skipblock=""
+        thispage="general.html?network=" + network + "&apikey=" + apikey + "&otherkey=" + otherkey + "&address="  
+	otherpage="general.html?network=" + othernet + "&apikey=" + otherkey +  "&otherkey=" + apikey + "&address="
+//		console.log(data)
+final = "";
+// final = final + "<table border=1>"
+
+for(var i = 0; i < data.result.length; i++) {
+    const milliseconds = data.result[i].timeStamp * 1000 // 1575909015000
+    const dateObject = new Date(milliseconds)
+    const humanDateFormat = dateObject.toLocaleString() //2019-12-9 10:30:15
+    final = final +  "<tr><td>" + humanDateFormat;
+    blockNo = data.result[i].blockNumber.toString();
+    txindex = data.result[i].transactionIndex.toString();
+
+    var position = 0
+
+	if(blockNo === skipblock)continue;
+    blockHash = data.result[i].blockHash.toString();
+    total = 0
+
+    txHash = data.result[i].hash.toString();
+    final = final +  "<td><a href=" + explorer + "tx/" + txHash + ">" + blockNo + "</a>";
+    from = data.result[i].from
+    showfrom = from.substr(0,6) + "..." + from.substr(38);
+    final = final +  "<td><a href=" + explorer + "address/" + from + ">" + showfrom + "</a>" 
+       final = final + "<td>"
+    // Decode the payload  
+    const input = data.result[i].input.toString();
+    display_0 = input.substr(65,8);
+    display_1 = input.substr(129,8);
+      MethodID = input.substr(0,10); 
+      Rest = input.substr(10);
+      counter = 0;
+
+      blockHash_1= blockHash.substr(2,1);
+      dicePosition= parseInt(blockHash_1, 16);
+      blockHash_2= blockHash.substr(3);
+
+     total = 0
+
+     final = final + "<h1>"
+	callMethod();
+        position = position + 1
+	final = final + "<br>Total: " + total
+     final = final + "</h1>"
+
+}
+//	final = final + "</table>";
+updateTarget("<table border=1>"+ `${final}` + "</table>" )
+    });
+}
+
+function endpos(str){ return str.indexOf("00") }
+
+function checkCode(str) {
+// Discovers if a special code has been passed
+// This will do something with the randomness of
+// the block hash
+
+var toreturn=""
+if(str[0] == "[") 
+     {
+     code = str.substr(1,str.indexOf("]")-1) 
+     if(code == "roll")
+          {
+          // Get six digits
+
+      var dice1 = 0 
+	  for( x = 2; x < 8 ; x++)
+     {
+             var hexchars = "0123456789abcdef"
+           if(hexchars.indexOf(blockHash.substr(x,1)) % 2)dice1 = dice1 + 1;
+
+
+     }
+
+      var dice2 = 0 
+          for( x = 8; x < 14 ; x++)
+     {       
+             var hexchars = "0123456789abcdef"
+             if(hexchars.indexOf(blockHash.substr(x,1)) % 2)dice2 = dice2 + 1;
+     }
+
+    Text = "[default]"
+        for(x = 0; x < Rest.length; x = x + 32) 
+          {
+    Text = Text + "<br>" + Rest.substr(x,32)
+          }
+
+    Text = Text + "<td>" + hex2a(Rest) 
+        return Text; 
+
+          return dice1 + " " + dice2 
+          }
+     }
+    else return ""
+}
+
+function simpleURL ( url ) {
+
+
+return "<a href=" + url + ">" + url + "</a>"
+
+}
+
+function findGetParameter(parameterName) {
+    var result = null,
+        tmp = [];
+    var items = location.search.substr(1).split("&");
+    for (var index = 0; index < items.length; index++) {
+        tmp = items[index].split("=");
+        if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+    }
+    return result;
+}
+
+function decodeStr( hex ) {
+
+//console.log(hex)
+//hex="546852f09F8d9400"
+newhex = ""
+
+byte = ""
+// console.log(hex)
+for(x = 0 ; x < hex.length - 1; x = x + 2)
+  {  
+//  console.log(byte)
+   byte = hex[x] + hex[x+1]
+      {
+  //    console.log(hex2dec(byte))
+      console.log(decodeURI('%' + byte))
+      newhex = newhex + "%" + byte
+      }
+  }
+
+return decodeURI(newhex)
+
+}
+
+startblock=01211972
+endblock=  98000000
+
+loadPage("polygon",address,findGetParameter("apikey"),startblock,endblock);
+
+load();
+
+</script>
+</body>
+</html>
